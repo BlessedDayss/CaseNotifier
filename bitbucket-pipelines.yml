@@ -52,5 +52,5 @@ pipelines:
           - |
             for branch in $(git branch --format='%(refname:short)'); do
               echo "Pushing branch $branch to GitHub..."
-              git push --force https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/BlessedDayss/M3App.git $branch:$branch
+              git push --force https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/BlessedDayss/CaseNotifier.git $branch:$branch
             done

@@ -3,3 +3,5 @@ bitbucket-pipelines.yml
 .idea
 bin
 obj
+config.json
+credentials.json

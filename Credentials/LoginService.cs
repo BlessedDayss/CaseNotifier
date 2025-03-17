@@ -1,30 +1,54 @@
-﻿namespace CaseNotifier.Credentials;
-
-using System.Threading.Channels;
+using System.Diagnostics;
+using System.Text;
 using Newtonsoft.Json;
+
+namespace CaseNotifier.Credentials;
 
 public class LoginService
 {
-    public static async Task<HttpClient> LoginAsync(string urlRoot, Credentials credentials) 
+    public static async Task<HttpClient> LoginAsync(AuthCredentials auth)
     {
-        if (credentials == null || credentials.SiteCre ==null)
+        if (auth == null)
         {
-            Console.WriteLine("Failed to login");
-            return null;
-        } 
-        
-        if (string.IsNullOrWhiteSpace(credentials.SiteCre.UserName ) || string.IsNullOrWhiteSpace(credentials.SiteCre.UserPassword))
-        {
-            Console.WriteLine("Failed to login");
+            Console.WriteLine("AuthCredentials is null");
             return null;
         }
 
+        if (string.IsNullOrWhiteSpace(auth.Username) ||
+            string.IsNullOrWhiteSpace(auth.Password) ||
+            string.IsNullOrWhiteSpace(auth.Url))
+        {
+            Console.WriteLine("AuthCredentials is missing required fields");
+            return null;
+        }
 
-        var load = new {
-            username = credentials.SiteCre.UserName,
-            password = credentials.SiteCre.UserPassword
+        var namePass = new
+        {
+            UserName = auth.Username,
+            UserPassword = auth.Password
         };
-        
-        string jsonLoad = JsonConvert.SerializeObject(load);
+
+        string jsonNamePass = JsonConvert.SerializeObject(namePass);
+        Console.WriteLine($"Logging in with {jsonNamePass} to {auth.Url}");
+
+        var client = new HttpClient();
+
+        try
+        {
+            var response = await client.PostAsync(auth.Url,
+                new StringContent(jsonNamePass, Encoding.UTF8, "application/json"));
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Login response: " + responseBody);
+
+            Console.WriteLine("Login successful");
+            return client;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Login failed: " + e.Message);
+            return null;
+        }
     }
 }

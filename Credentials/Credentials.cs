@@ -2,7 +2,7 @@
 
 public class Credentials
 {
-    public SiteCredentials SiteCre { get; set; }
+    public SiteCredentials loginAndPass { get; set; }
     
     public class SiteCredentials
     {

@@ -10,16 +10,20 @@ namespace CaseNotifier
     {
         static async Task Main(string[] args)
         {
+            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             IConfiguration config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
                 .Build();
             
+
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(config);
             
             // var serviceProvider = services.BuildServiceProvider();
             HttpClient client = await AuthService.LoginAsync(config);
+            
+            
         }
     }
 }

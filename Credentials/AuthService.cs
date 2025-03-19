@@ -14,7 +14,6 @@
     public static class AuthService
     {
         public static async Task<HttpClient> LoginAsync(IConfiguration config) {
-            // Читаем нужные настройки
             string defaultUrl = config["Url:DefaultUrl"];
             string authUrl = config["Authentication:authorizationUrl"];
             string userName = config["Credentials:UserName"];
@@ -31,6 +30,7 @@
             AnsiConsole.MarkupLine($"Login: [bold]UserName[/]: {userName}");
             AnsiConsole.MarkupLine($"Login: [bold]Password[/]: {userPassword}");
             AnsiConsole.MarkupLine("Logging in...");
+            
 
             var json = JsonConvert.SerializeObject(requestBody);
 
@@ -46,10 +46,8 @@
 
             if (loginResponse.Code != 0) {
                 AnsiConsole.MarkupLine($"Error: {loginResponse.Message}");
-                throw new Exception($"Login failed: {loginResponse.Message}");
             } else {
-                AnsiConsole.MarkupLine($"Login successful: {loginResponse.Message}");
-
+                AnsiConsole.MarkupLine($"[blue]Login successful[/]");
             }
             return client;
         }

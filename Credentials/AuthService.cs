@@ -46,6 +46,8 @@
 
             if (loginResponse.Code != 0) {
                 AnsiConsole.MarkupLine($"Error: {loginResponse.Message}");
+                Environment.Exit(1);
+
             } else {
                 AnsiConsole.MarkupLine($"[blue]Login successful[/]");
             }

@@ -5,32 +5,20 @@ pipelines:
     - step:
         name: "Mirror to GitHub without Jira tags and pipeline files"
         script:
-          # Настраиваем Git для работы
+          - set -x
           - git config --global user.name "Bitbucket Pipeline"
           - git config --global user.email "pipeline@example.com"
-          
-          # Клонируем текущий репозиторий во временную директорию
           - TEMP_DIR=$(mktemp -d)
           - git clone --mirror "$(pwd)" $TEMP_DIR
           - cd $TEMP_DIR
-          
-          # Получаем все ветки
           - git fetch --all
-          
-          # Для каждой ветки исправляем коммиты
-          - |
-            for branch in $(git branch --format='%(refname:short)'); do
+          - git for-each-ref --format='%(refname:short)' refs/heads/ | while read branch; do
               echo "Processing branch: $branch"
               git checkout $branch
-              
-              # Получаем все коммиты в текущей ветке
               COMMITS=$(git log --pretty=format:"%H")
-              
-              # Проходим по каждому коммиту и исправляем сообщение
               for commit in $COMMITS; do
                 COMMIT_MSG=$(git log --format=%B -n 1 $commit)
                 NEW_COMMIT_MSG=$(echo "$COMMIT_MSG" | sed -E 's/OPS-[0-9]+\s*//g')
-                
                 if [ "$COMMIT_MSG" != "$NEW_COMMIT_MSG" ]; then
                   echo "Updating commit message for $commit"
                   echo "Old: $COMMIT_MSG"
@@ -38,19 +26,12 @@ pipelines:
                   git filter-branch --msg-filter "sed -E 's/OPS-[0-9]+\s*//g'" $commit^..$commit
                 fi
               done
-              
-              # Удаляем файл bitbucket-pipelines.yml из индекса (но не из рабочей копии)
               git rm --cached bitbucket-pipelines.yml || true
-              
-              # Если есть изменения в индексе, создаем коммит
               if ! git diff --cached --quiet; then
                 git commit -m "Remove bitbucket-pipelines.yml for GitHub mirror"
               fi
             done
-          
-          # Отправляем все изменения в GitHub с учётом всех веток
-          - |
-            for branch in $(git branch --format='%(refname:short)'); do
+          - git for-each-ref --format='%(refname:short)' refs/heads/ | while read branch; do
               echo "Pushing branch $branch to GitHub..."
               git push --force https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/BlessedDayss/CaseNotifier.git $branch:$branch
             done

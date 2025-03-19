@@ -1,11 +1,8 @@
 ﻿namespace CaseNotifier.Services
 {
-    using System.Data.SqlTypes;
     using System.Net.Http;
-    using System.Net.Http.Json;
     using System.Text;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
     using CaseNotifier.Models;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
@@ -27,17 +24,15 @@
                 UserName = userName,
                 UserPassword = userPassword
             };
-            AnsiConsole.MarkupLine($"Login: [bold]UserName[/]: {userName}");
-            AnsiConsole.MarkupLine($"Login: [bold]Password[/]: {userPassword}");
-            AnsiConsole.MarkupLine("Logging in...");
             
 
             var json = JsonConvert.SerializeObject(requestBody);
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-
-            var client = new HttpClient();
+            
+            var handler =  new HttpClientHandler{UseCookies = true};
+            var client = new HttpClient(handler);
+            
             var response = await client.PostAsync(fullUrl, content);
 
             string responseString = await response.Content.ReadAsStringAsync();
@@ -51,6 +46,10 @@
             } else {
                 AnsiConsole.MarkupLine($"[blue]Login successful[/]");
             }
+            
+            var cookies = handler.CookieContainer.GetCookies(new Uri(defaultUrl));
+            // var csrfToken = cookies[".AspNetCore.CsrfToken"];
+            
             return client;
         }
     }

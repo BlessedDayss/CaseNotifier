@@ -18,30 +18,20 @@ namespace CaseNotifier
 
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(config);
-
-            // var serviceProvider = services.BuildServiceProvider();
+            var serviceProvider = services.BuildServiceProvider();
             HttpClient client = await AuthService.LoginAsync(config);
-
-            Console.Clear();
-            int interval = TimeInterval.GetInterval();
-            AnsiConsole.MarkupLine($"[purple]You have chosen {interval} minutes[/]");
             
-           string odataResponse = await OdataRequest.SendRequestAsync(config);
-           AnsiConsole.MarkupLine("[bold]Response[/]: " + odataResponse);
+            while (true) {
 
-            // var table = new Table();
-            // table.Border = TableBorder.Double;
-            // table.AddColumn("Case Number");
-            // table.AddColumn("Case Title");
-            // table.AddColumn("Case Subject");
-            // table.AddColumn("Case Priority");
-            // table.AddColumn("Status");
-            //
-            // AnsiConsole.Write(table);
-            //
-            //
-            // Console.ReadKey();
-
+                Console.Clear();
+                int interval = TimeInterval.GetInterval();
+                AnsiConsole.MarkupLine($"[purple]You have chosen {interval} minutes[/]");
+                string odataResponse = await OdataRequest.SendRequestAsync(config, client);
+                string action = Menu.Menu.MenuChoice();
+                if (action == "Exit") {
+                    break;
+                }
+            }
         }
     }
 }

@@ -78,9 +78,7 @@
                                     throw new Exception($"Error when sending email: {ex.Message}", ex);
                                 }
                             }
-                        }
-            
-                        Console.WriteLine("HTML-mail sent successfully");
+                        }   
                     }
                 }
                 

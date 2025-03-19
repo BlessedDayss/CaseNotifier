@@ -10,8 +10,9 @@ pipelines:
           - git config --global user.email "pipeline@example.com"
           - echo "Creating temporary directory..."
           - TEMP_DIR=$(mktemp -d)
-          - echo "Cloning repository as mirror..."
-          - git clone --mirror "$(pwd)" $TEMP_DIR
+          - echo "Cloning repository (with working tree)..."
+          # Клонируем без --mirror, чтобы создать рабочее дерево
+          - git clone "$(pwd)" $TEMP_DIR
           - cd $TEMP_DIR
           - echo "Fetching all refs..."
           - git fetch --all
@@ -40,7 +41,7 @@ pipelines:
                 git commit -m "Remove bitbucket-pipelines.yml for GitHub mirror"
               fi
             done
-          # Пушим все ветки в GitHub
+          # Пуш всех веток в GitHub
           - |
             for branch in $(git for-each-ref --format="%(refname:short)" refs/heads/); do
               echo "Pushing branch $branch to GitHub..."

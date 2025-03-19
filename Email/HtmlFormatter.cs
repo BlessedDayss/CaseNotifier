@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using CaseNotifier.Map;     // Где лежат PriorityMapper и StatusMapper
+using CaseNotifier.Map;    
 using CaseNotifier.Models;
 
 public static class HtmlFormatter

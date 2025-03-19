@@ -24,4 +24,11 @@ public class PriorityMapper
             _         => "white"
         };
     }
+    
+    public static string GetColoredPriority(string priorityId)
+    {
+        string name = MapPriority(priorityId ?? string.Empty);
+        string color = PriorityColorCode(name);
+        return $"[{color}]{name}[/]";
+    }
 }

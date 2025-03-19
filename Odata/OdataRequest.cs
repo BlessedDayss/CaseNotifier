@@ -32,14 +32,13 @@ public class OdataRequest
             table.AddColumn("Created On");
 
             foreach (var caseItem in cases) {
-                string priorityName = PriorityMapper.MapPriority(caseItem.PriorityId ?? String.Empty);
-                string colorCode = PriorityMapper.PriorityColorCode(priorityName);
-                string coloredPriority = $"[{colorCode}]{priorityName}[/]";
+                string coloredPriority = PriorityMapper.GetColoredPriority(caseItem.PriorityId);
+                string coloredStatus = StatusMapper.GetColoredStatus(caseItem.StatusId);
                 table.AddRow(
                     caseItem.Number ?? "N/A",
                     caseItem.Subject ?? "N/A",
                     coloredPriority,
-                    caseItem.Status ?? "N/A",
+                    coloredStatus,
                     caseItem.CreatedOn.ToString("yyyy-MM-dd HH:mm")
                     );
                 

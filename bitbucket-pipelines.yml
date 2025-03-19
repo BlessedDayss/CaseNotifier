@@ -3,19 +3,26 @@ image: atlassian/default-image:latest
 pipelines:
   default:
     - step:
-        name: "Mirror to GitHub without Jira tags and pipeline files"
+        name: "Mirror to GitHub without Jira tag and pipelines file"
         script:
-          - set -x
+          - echo "Setting up global Git config..."
           - git config --global user.name "Bitbucket Pipeline"
           - git config --global user.email "pipeline@example.com"
+          - echo "Creating temporary directory..."
           - TEMP_DIR=$(mktemp -d)
+          - echo "Cloning repository as mirror..."
           - git clone --mirror "$(pwd)" $TEMP_DIR
           - cd $TEMP_DIR
+          - echo "Fetching all refs..."
           - git fetch --all
-          - git for-each-ref --format='%(refname:short)' refs/heads/ | while read branch; do
+          # Обработка каждой ветки
+          - |
+            for branch in $(git for-each-ref --format="%(refname:short)" refs/heads/); do
               echo "Processing branch: $branch"
               git checkout $branch
+              # Получаем все коммиты в текущей ветке
               COMMITS=$(git log --pretty=format:"%H")
+              # Проходим по каждому коммиту и исправляем сообщение
               for commit in $COMMITS; do
                 COMMIT_MSG=$(git log --format=%B -n 1 $commit)
                 NEW_COMMIT_MSG=$(echo "$COMMIT_MSG" | sed -E 's/OPS-[0-9]+\s*//g')
@@ -26,12 +33,16 @@ pipelines:
                   git filter-branch --msg-filter "sed -E 's/OPS-[0-9]+\s*//g'" $commit^..$commit
                 fi
               done
+              # Удаляем файл bitbucket-pipelines.yml из индекса, чтобы он не попал в GitHub
               git rm --cached bitbucket-pipelines.yml || true
+              # Если в индексе есть изменения, создаем коммит
               if ! git diff --cached --quiet; then
                 git commit -m "Remove bitbucket-pipelines.yml for GitHub mirror"
               fi
             done
-          - git for-each-ref --format='%(refname:short)' refs/heads/ | while read branch; do
+          # Пушим все ветки в GitHub
+          - |
+            for branch in $(git for-each-ref --format="%(refname:short)" refs/heads/); do
               echo "Pushing branch $branch to GitHub..."
-              git push --force https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/BlessedDayss/CaseNotifier.git $branch:$branch
+              git push --force https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/$GITHUB_USER/CaseNotifier.git $branch:$branch
             done

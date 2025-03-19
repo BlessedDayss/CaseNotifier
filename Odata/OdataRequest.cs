@@ -1,4 +1,5 @@
-﻿using CaseNotifier.Models;
+﻿using CaseNotifier.Map;
+using CaseNotifier.Models;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using Spectre.Console;
@@ -19,9 +20,11 @@ public class OdataRequest
         try {
             var jsonRepsonse = JObject.Parse(content);
             var cases = jsonRepsonse["value"].ToObject<List<CaseItem>>();
-            
-            var table = new Table();
-            table.Border = TableBorder.Double;
+
+
+            var table = new Table()
+                .Border(TableBorder.DoubleEdge)
+                .BorderColor(Color.BlueViolet);
             table.AddColumn("Case Number");
             table.AddColumn("Subject");
             table.AddColumn("Priority");
@@ -29,10 +32,13 @@ public class OdataRequest
             table.AddColumn("Created On");
 
             foreach (var caseItem in cases) {
+                string priorityName = PriorityMapper.MapPriority(caseItem.PriorityId ?? String.Empty);
+                string colorCode = PriorityMapper.PriorityColorCode(priorityName);
+                string coloredPriority = $"[{colorCode}]{priorityName}[/]";
                 table.AddRow(
                     caseItem.Number ?? "N/A",
                     caseItem.Subject ?? "N/A",
-                    caseItem.Priority ?? "N/A",
+                    coloredPriority,
                     caseItem.Status ?? "N/A",
                     caseItem.CreatedOn.ToString("yyyy-MM-dd HH:mm")
                     );

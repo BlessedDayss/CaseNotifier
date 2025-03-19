@@ -2,6 +2,7 @@
 namespace CaseNotifier
 {
     using System.Runtime.InteropServices.JavaScript;
+    using CaseNotifier.Menu;
     using CaseNotifier.Services;
     using CaseNotifier.Timer;
     using Microsoft.Extensions.Configuration;
@@ -18,17 +19,37 @@ namespace CaseNotifier
 
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(config);
+            services.AddSingleton<EmailNotificationService>();
             var serviceProvider = services.BuildServiceProvider();
             HttpClient client = await AuthService.LoginAsync(config);
-            
+
+            var emailService = serviceProvider.GetRequiredService<EmailNotificationService>();
+
             while (true) {
 
-                Console.Clear();
-                int interval = TimeInterval.GetInterval();
-                AnsiConsole.MarkupLine($"[purple]You have chosen {interval} minutes[/]");
-                string odataResponse = await OdataRequest.SendRequestAsync(config, client);
-                string action = Menu.Menu.MenuChoice();
-                if (action == "Exit") {
+                int intevalMinutes = TimeInterval.GetInterval();
+                TimeSpan interval = TimeSpan.FromMinutes(intevalMinutes);
+
+                while (true) {
+                    Console.Clear();
+                    AnsiConsole.MarkupLine($"[purple]Interval chosen: {intevalMinutes} minutes[/]");
+                    string odataResponse = await OdataRequest.SendRequestAsync(config, client);
+                    string subject = $"Case Notification - {DateTime.Now:yyyy-MM-dd HH:mm}";
+
+                    await emailService.SendEmailAsync(subject, odataResponse);
+                    AnsiConsole.MarkupLine($"\n[purple]Email sent successfully![/]");
+
+                    bool menuRequested = await Countdown.StartAsync(interval);
+
+                    MenuAction action = Menu.Menu.MenuChoice();
+                    switch (action) {
+                        case MenuAction.RechooseInterval:
+                            break;
+                        case MenuAction.Exit:
+                            return;
+                        case MenuAction.Continue:
+                            continue;
+                    }
                     break;
                 }
             }

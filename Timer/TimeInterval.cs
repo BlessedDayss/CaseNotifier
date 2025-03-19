@@ -17,8 +17,7 @@ public class TimeInterval
             "10 minutes" => 10,
             "15 minutes" => 15,
             "30 minutes" => 30,
-            "60 minutes" => 60,
-            _ => throw new ArgumentOutOfRangeException()
+            "60 minutes" => 60
         };
     }
 }

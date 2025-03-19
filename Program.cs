@@ -18,15 +18,26 @@ namespace CaseNotifier
 
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(config);
+            services.AddSingleton<EmailNotificationService>();
             var serviceProvider = services.BuildServiceProvider();
             HttpClient client = await AuthService.LoginAsync(config);
             
+            var emailService = serviceProvider.GetRequiredService<EmailNotificationService>();
+            
+            
+            int intevalMinutes = TimeInterval.GetInterval();
+            TimeSpan interval = TimeSpan.FromMinutes(intevalMinutes);
+            
             while (true) {
-
                 Console.Clear();
-                int interval = TimeInterval.GetInterval();
-                AnsiConsole.MarkupLine($"[purple]You have chosen {interval} minutes[/]");
+                AnsiConsole.MarkupLine($"[purple]Interval chosen: {intevalMinutes} minutes[/]");
                 string odataResponse = await OdataRequest.SendRequestAsync(config, client);
+                string subject = $"Case Notification - {DateTime.Now:yyyy-MM-dd HH:mm}";
+                
+                await emailService.SendEmailAsync(subject, odataResponse);
+                AnsiConsole.MarkupLine($"[green]Email sent successfully![/]");
+
+                await Countdown.StartAsync(interval);
                 string action = Menu.Menu.MenuChoice();
                 if (action == "Exit") {
                     break;
